@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     cout<<"Server port: "<<port<<endl;
 
     //opening logfile for write
-    auto fout_ptr = std::make_shared<std::ofstream>("LogFile.txt",std::ios_base::out|std::ios_base::trunc);
+    auto fout_ptr = std::make_shared<std::ofstream>("log.txt",std::ios_base::out|std::ios_base::trunc);
     if(!fout_ptr->good()){
         cout<<"Can't open file for writing"<<endl;
         return EBADF;
