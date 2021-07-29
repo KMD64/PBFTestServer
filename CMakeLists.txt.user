@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.15.2, 2021-07-29T13:38:47. -->
+<!-- Written by QtCreator 4.15.2, 2021-07-29T18:15:06. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -353,6 +353,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">PBF_Test_Server</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.PBF_Test_Server</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">PBF_Test_Server</value>
+    <value type="QString" key="RunConfiguration.Arguments">25565</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>

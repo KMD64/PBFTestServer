@@ -1,25 +1,21 @@
-#include <iostream>
+#include <iostream>//io
+#include <fstream>//file io
+#include <memory>//shared ptrs
+#include <thread>//threads
+#include <mutex>//mutex
+
+#include <unistd.h>//read
+#include <arpa/inet.h>//inet_ntoa
 
 #include "tcpserver.h"
-#include "worker.h"
-
-#include <arpa/inet.h>
-#include <fstream>
-#include <memory>
-#include <thread>
-#include <signal.h>
-#include <unistd.h>
-#include <mutex>
-#include <system_error>
 
 using std::cout;
 using std::endl;
 
-bool is_running = true;
-
 int main(int argc, char **argv)
 {
     if(argc<2)return EINVAL;
+
     const int port{atoi(argv[1])};
     cout<<"Configuration started"<<endl;
     cout<<"Server port: "<<port<<endl;
@@ -28,11 +24,12 @@ int main(int argc, char **argv)
     auto fout_ptr = std::make_shared<std::ofstream>("LogFile.txt",std::ios_base::out|std::ios_base::trunc);
     if(!fout_ptr->good()){
         cout<<"Can't open file for writing"<<endl;
-        return -5;
+        return EBADF;
     }
+    //mutex for synchronous writing
     auto mtx_ptr = std::make_shared<std::mutex>();
 
-    //creating server
+    //server socket
     TcpServer pserver;
     try{
         pserver.listen(port);
@@ -62,13 +59,14 @@ int main(int argc, char **argv)
                     close(fd);
                     break;
                 }
-                //Block the stream for seamless writing
+                //Block the stream for writing
                 std::unique_lock<std::mutex> lk(*mtx);
                 fout->write(buffer,size);
                 *fout<<'\n';
                 fout->flush();
             }
         },client_socket.handler,fout_ptr,mtx_ptr);
+
         t.detach();
     }
     return 0;
