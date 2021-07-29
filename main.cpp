@@ -10,13 +10,17 @@
 #include <signal.h>
 #include <unistd.h>
 #include <mutex>
+#include <system_error>
+
 using std::cout;
 using std::endl;
 
 bool is_running = true;
-int main()
+
+int main(int argc, char **argv)
 {
-    const int port{25535};
+    if(argc<2)return EINVAL;
+    const int port{atoi(argv[1])};
     cout<<"Configuration started"<<endl;
     cout<<"Server port: "<<port<<endl;
 
@@ -26,7 +30,7 @@ int main()
         cout<<"Can't open file for writing"<<endl;
         return -5;
     }
-    std::mutex mtx;
+    auto mtx_ptr = std::make_shared<std::mutex>();
 
     //creating server
     TcpServer pserver;
@@ -39,33 +43,33 @@ int main()
 
     cout<<"Configuration finished. Listening port "<<port<<endl;
     while(true){
-        cout<<"Waiting for signal"<<endl;
+        cout<<"Waiting for connection"<<endl;
         auto client_socket = pserver.get_connection();
         if(client_socket.handler<0){
-            cout<<"Invalid connection"<<endl;
+            cout<<"Connection failed"<<endl;
             continue;
         }
-        cout<<"Got connection"<<endl;
-        std::thread t([](int fd,std::shared_ptr<std::ostream> fout){
+        cout<<"Got connection "<<inet_ntoa(client_socket.data.sin_addr)<<":"<<client_socket.data.sin_port<<endl;
+
+        //creating thread for handling client socket
+        std::thread t([](int fd,std::shared_ptr<std::ostream> fout,std::shared_ptr<std::mutex> mtx){
             const size_t buffer_size=128;
             char buffer[128];
             while(true){
                 auto size = read(fd,buffer,512);
                 if(size<=0){
-                    *fout<<"Read error\n"<<errno;
-                    continue;
-                }
-                if(size==1){
-                    *fout<<"End of stream";
+                    //Error. Closing connection
                     close(fd);
                     break;
                 }
+                //Block the stream for seamless writing
+                std::unique_lock<std::mutex> lk(*mtx);
                 fout->write(buffer,size);
+                *fout<<'\n';
                 fout->flush();
             }
-        },client_socket.handler,fout_ptr);
+        },client_socket.handler,fout_ptr,mtx_ptr);
         t.detach();
-
     }
     return 0;
 }
